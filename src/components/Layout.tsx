@@ -1,0 +1,14 @@
+import { useEffect, useRef, useState } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Home, ClipboardCheck, GraduationCap, FileText, RotateCcw, Menu, X } from 'lucide-react'
+import { useDemo } from '../lib/useDemo'
+const links = [{ to: '/', label: 'Inicio', icon: Home }, { to: '/asistencia', label: 'Asistencia', icon: ClipboardCheck }, { to: '/calificaciones', label: 'Calificaciones', icon: GraduationCap }, { to: '/boleta', label: 'Boletas', icon: FileText }]
+export default function Layout() {
+  const [open, setOpen] = useState(false)
+  const [resetOpen, setResetOpen] = useState(false)
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  useEffect(() => { if (resetOpen) dialogRef.current?.showModal(); else dialogRef.current?.close() }, [resetOpen])
+  const { reset, error } = useDemo()
+  const location = useLocation()
+  return <div className="app-shell"><aside className={`sidebar ${open ? 'open' : ''}`}><div className="brand">Q <span>/</span> QUEVEDO</div><div className="eyebrow">GESTIÓN ESCOLAR</div><div className="campus">Plantel Puebla<br/>Ciclo 2026–2027</div><nav aria-label="Navegación principal">{links.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} end={to === '/'} onClick={() => setOpen(false)} className={({ isActive }) => isActive || to === '/asistencia' && location.pathname === '/reporte' ? 'active' : ''}><Icon size={18}/>{label}</NavLink>)}</nav><div className="future"><div className="eyebrow">PRÓXIMAS ETAPAS</div><p>Expediente del alumno<br/>Comunicación<br/>Pagos y colegiaturas</p></div><div className="sidebar-bottom">Administración<br/><span>Sesión de demostración</span></div></aside>{open && <button className="scrim" aria-label="Cerrar menú" onClick={() => setOpen(false)}/> }<main><div className="topbar"><button className="menu-button" aria-label={open ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X/> : <Menu/>}</button><span>Centro Universitario Quevedo</span><span className="demo-badge">Demostración</span><span className="admin">ADMIN</span></div>{error && <p className="error" role="alert">{error}</p>}<Outlet/><footer className="demo-footer"><span>Datos ficticios · Guardado únicamente en este navegador</span><button className="text-button" onClick={() => setResetOpen(true)}><RotateCcw size={14}/>Restablecer demo</button></footer></main><dialog ref={dialogRef} className="modal" aria-labelledby="reset-title" onCancel={() => setResetOpen(false)}><h2 id="reset-title">Restablecer datos de ejemplo</h2><p>Se reemplazarán las listas y calificaciones que modificaste en esta demo.</p><div className="actions"><button autoFocus className="button secondary" onClick={() => setResetOpen(false)}>Cancelar</button><button className="button" onClick={() => { if (reset()) { setResetOpen(false); window.location.assign('/') } }}>Restablecer</button></div></dialog></div>
+}

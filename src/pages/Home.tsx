@@ -1,0 +1,11 @@
+import { Users, ClipboardCheck, GraduationCap } from 'lucide-react'
+import { groups, students, today, average } from '../lib/data'
+import { useDemo } from '../lib/useDemo'
+import { Heading, Table, ActionLink } from '../components/UI'
+export default function Home() {
+  const { data } = useDemo()
+  const savedGroups = new Set(data.attendance.filter(r => r.date === today).map(r => r.group))
+  const pendingGroups = groups.filter(g => Object.entries(data.grades).some(([key, values]) => key.startsWith(`${g.id}|`) && Object.values(values).some(v => average(v) === null)))
+  const indicators = [{ title: 'Alumnos activos', value: students.length, note: 'Alumnos de la demostración', icon: Users }, { title: 'Listas registradas hoy', value: `${savedGroups.size} / ${groups.length}`, note: `${groups.length - savedGroups.size} grupos pendientes`, icon: ClipboardCheck }, { title: 'Grupos por evaluar', value: pendingGroups.length, note: 'Captura en curso', icon: GraduationCap }]
+  return <><Heading title="Tu escuela, en orden.">{new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${today}T12:00:00Z`))} · Resumen de administración</Heading><div className="indicators">{indicators.map(({ title, value, note, icon: Icon }) => <article className="card metric" key={title}><div className="metric-label">{title}<Icon size={19}/></div><strong>{value}</strong><small>{note}</small></article>)}</div><h2>¿Qué necesitas hacer?</h2><div className="access-grid"><article className="card access primary-access"><span className="eyebrow">01</span><h3>Asistencia del día</h3><p>Pasa lista y consulta el consolidado.</p><ActionLink to="/asistencia">Pasar lista</ActionLink></article><article className="card access soft-access"><span className="eyebrow">02</span><h3>Calificaciones y boletas</h3><p>Captura evaluaciones y revisa boletas.</p><ActionLink to="/calificaciones">Capturar calificaciones</ActionLink></article></div><h2>Pendientes que requieren atención</h2><Table headings={['Grupo', 'Pendiente', 'Responsable']}>{groups.filter(g => !savedGroups.has(g.id) || pendingGroups.includes(g)).map(g => <tr key={g.id}><td>{g.name} · {g.level}</td><td>{!savedGroups.has(g.id) ? 'Lista del día sin guardar' : 'Completar calificaciones pendientes'}</td><td>{g.teacher}</td></tr>)}</Table></>
+}
